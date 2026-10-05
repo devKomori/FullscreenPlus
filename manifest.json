@@ -1,0 +1,34 @@
+{
+  "name": "Fullscreen+",
+  "description": "Control of your browser's fullscreen behavior.",
+  "version": "1.0",
+  "manifest_version": 3,
+  "icons": {
+    "16": "imgs/icon.png",
+    "32": "imgs/icon.png",
+    "48": "imgs/icon.png",
+    "128": "imgs/icon.png"
+  },
+  "action": {
+    "default_popup": "html/popup.html"
+  },
+  "content_scripts": [
+    {
+        "matches": ["<all_urls>"],
+        "js": ["js/fullscreen.js"],
+        "run_at": "document_start",
+        "world": "MAIN",
+        "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js"],
+      "css": ["css/content.css"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "permissions": ["activeTab"]
+
+
+}
