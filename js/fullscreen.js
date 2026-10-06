@@ -6,7 +6,6 @@
     let currentFullscreenElement = null;
 
 
-
     // Overrides the value of document.fullscreenElement to return the currentFullscreenElement, if any.
     try {
         Object.defineProperty(document, 'fullscreenElement', {
@@ -18,8 +17,7 @@
     }
 
 
-
-    // Overrides default behavior of requestFullscreen method.
+    // marks the element requesting fullscreen and sends message to content script to handle fullscreen behavior
     Element.prototype.requestFullscreen = function () {
         currentFullscreenElement = this;
         this.setAttribute(requestMarker, '');
@@ -28,8 +26,7 @@
     };
 
 
-
-    // Overrides default behavior of exitFullscreen method.
+    // lets us override the default behavior of exitFullscreen method by calling our own exitFullscreen function
     Document.prototype.exitFullscreen = function () {
         exitFullscreen();
         return Promise.resolve();
@@ -39,7 +36,6 @@
         currentFullscreenElement = null;
         window.postMessage({type: exitMsg}, window.location.origin);
     }
-
 
 
     // Listens for Escape key press and directly calls exitFullscreen if the current window is the topmost window,
@@ -52,7 +48,7 @@
             event.stopImmediatePropagation();
 
             if (window.top !== window) {
-                window.top.postMessage({ type: 'windowed-fullscreen-exit' }, '*');
+                window.top.postMessage({type: exitMsg}, '*');
                 return;
             }
             exitFullscreen();
