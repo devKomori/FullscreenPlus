@@ -1,0 +1,48 @@
+body {
+    background: #0b1622;
+    width: 200px;
+    height: auto;
+    color: whitesmoke;
+    margin: 0;
+    font-family: Inter, sans-serif;
+}
+
+h2 {
+    text-align: center;
+}
+.accent {
+    color: #3577ff;
+}
+
+p {
+    margin: 15px;
+    color: #ccc;
+}
+
+footer {
+    text-align: center;
+    font-size: 12px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    cursor: pointer;
+}
+
+.radio-btn {
+    margin: 0;
+    accent-color: #3577ff;
+}
+
+.radio-label:hover {
+    background: #172e48;
+}
+
+
+
+
+
+
