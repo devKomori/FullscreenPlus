@@ -1,33 +1,56 @@
 (() => {
+    const nativeRequestFullscreen = Element.prototype.requestFullscreen;
+    const nativeExitFullscreen = Document.prototype.exitFullscreen;
+    const nativeFullscreenElementGetter = Object.getOwnPropertyDescriptor(Document.prototype, 'fullscreenElement').get;
     const requestMsg = 'windowed-fullscreen-request';
     const exitMsg = 'windowed-fullscreen-exit';
-    // Marker for elements that request fullscreen so the content script can identify and handle them
-    const requestMarker = 'windowed-fullscreen-data-request';
+    const requestMarker = 'windowed-fullscreen-data-request'; // Mark the element requesting fullscreen
+    let fullscreenMode = 'ask'; // Default mode is 'ask'
     let currentFullscreenElement = null;
 
 
-    // Overrides the value of document.fullscreenElement to return the currentFullscreenElement, if any.
+    window.addEventListener('message', (event) => {
+        if (event.data?.type === 'fullscreen-mode-update') {
+            fullscreenMode = event.data.mode;
+            currentFullscreenElement = null;
+        }
+    });
+
+
+    // Override the fullscreenElement property to return the currentFullscreenElement if it exists
     try {
         Object.defineProperty(document, 'fullscreenElement', {
             configurable: true,
-            get: () => currentFullscreenElement
+            get: () => {
+                if (currentFullscreenElement) {
+                    return currentFullscreenElement;
+                }
+                return nativeFullscreenElementGetter.call(document);
+            }
         });
     } catch (error) {
         console.error('Error while overriding fullscreenElement:', error);
     }
 
 
-    // marks the element requesting fullscreen and sends message to content script to handle fullscreen behavior
-    Element.prototype.requestFullscreen = function () {
+    // Override the requestFullscreen method to handle fullscreen requests based on the current fullscreen mode
+    Element.prototype.requestFullscreen = function (...args) {
+        if (fullscreenMode !== 'in-window') {
+            return nativeRequestFullscreen.apply(this, args);
+        }
         currentFullscreenElement = this;
         this.setAttribute(requestMarker, '');
+
         window.postMessage({type: requestMsg}, window.location.origin);
         return Promise.resolve();
     };
 
 
-    // lets us override the default behavior of exitFullscreen method by calling our own exitFullscreen function
+    // Override the exitFullscreen method to handle exiting fullscreen mode based on the current fullscreen mode
     Document.prototype.exitFullscreen = function () {
+        if (fullscreenMode !== 'in-window') {
+            return nativeExitFullscreen.apply(this);
+        }
         exitFullscreen();
         return Promise.resolve();
     }
@@ -38,8 +61,7 @@
     }
 
 
-    // Listens for Escape key press and directly calls exitFullscreen if the current window is the topmost window,
-    // or sends a message to the top window to exit fullscreen mode if the current window is not the topmost window.
+    // Listen for the Escape key to exit fullscreen mode
     document.addEventListener('keydown', (event) => {
             if (event.key !== 'Escape') {
                 return;

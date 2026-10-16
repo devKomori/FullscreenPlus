@@ -28,7 +28,7 @@
       "all_frames": true
     }
   ],
-  "permissions": ["activeTab"]
+  "permissions": ["activeTab", "storage"]
 
 
 }

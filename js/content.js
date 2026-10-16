@@ -1,5 +1,45 @@
 const fullscreenClass = 'windowed-mode-fullscreen';
 let fullscreenWindowElement = null;
+const hostname = location.hostname.replace(/^www\./, '');
+const validModes = new Set([
+    'ask',
+    'in-window',
+    'native-fullscreen'
+]);
+
+
+function sendModeToPage(mode) {
+    const safeMode = validModes.has(mode) ? mode : 'ask';
+    window.postMessage({
+            type: 'fullscreen-mode-update',
+            mode: safeMode
+        },
+        window.location.origin);
+}
+
+
+async function loadMode() {
+    const result = await chrome.storage.local.get('fullscreenPreferences');
+    const preferences = result.fullscreenPreferences || {};
+    const savedMode = preferences[hostname] || 'ask';
+
+    sendModeToPage(validModes.has(savedMode) ? savedMode : 'ask');
+}
+
+
+chrome.runtime.onMessage.addListener((message) => {
+    if (message?.type !== 'fullscreen-mode-update') {
+        return;
+    }
+    const mode = validModes.has(message.mode) ? message.mode : 'ask';
+
+    if (mode !== 'in-window') {
+        fullscreenExit(false);
+    }
+    sendModeToPage(mode);
+});
+
+loadMode();
 
 
 window.addEventListener('message', (event) => {
@@ -24,13 +64,13 @@ window.addEventListener('message', (event) => {
             enterWindowedFullscreen(requestedElement);
         }
     }
+
     if (event.data?.type === 'windowed-fullscreen-exit') {
         if (event.source === window || window.parent === window) {
             fullscreenExit();
         }
     }
 });
-
 
 
 function enterWindowedFullscreen(element) {
@@ -42,13 +82,17 @@ function enterWindowedFullscreen(element) {
 }
 
 
-
-function fullscreenExit() {
+// notifyPage: if true, dispatch changes to the page; if false, just exit fullscreen without notifying the page
+function fullscreenExit(notifyPage = true) {
     if (fullscreenWindowElement === null) {
         return;
     }
     fullscreenWindowElement.classList.remove(fullscreenClass);
+    fullscreenWindowElement = null;
+
+    if (!notifyPage) {
+        return;
+    }
     document.dispatchEvent(new Event('fullscreenchange'));
     window.dispatchEvent(new Event('resize'));
-    fullscreenWindowElement = null;
 }
