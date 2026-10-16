@@ -1,5 +1,6 @@
 const fullscreenClass = 'windowed-mode-fullscreen';
 let fullscreenWindowElement = null;
+let fullscreenWindowFrame = null;
 const hostname = location.hostname.replace(/^www\./, '');
 const validModes = new Set([
     'ask',
@@ -64,7 +65,6 @@ window.addEventListener('message', (event) => {
             enterWindowedFullscreen(requestedElement);
         }
     }
-
     if (event.data?.type === 'windowed-fullscreen-exit') {
         if (event.source === window || window.parent === window) {
             fullscreenExit();
@@ -74,11 +74,20 @@ window.addEventListener('message', (event) => {
 
 
 function enterWindowedFullscreen(element) {
+    if (fullscreenWindowElement && fullscreenWindowElement !== element) {
+        fullscreenWindowElement.classList.remove(fullscreenClass);
+    }
     fullscreenWindowElement = element;
+    fullscreenWindowFrame = element.tagName === 'IFRAME' ? element : null;
     fullscreenWindowElement.classList.add(fullscreenClass);
+    fullscreenWindowElement.removeAttribute('windowed-fullscreen-data-request');
 
     document.dispatchEvent(new Event('fullscreenchange'));
     window.dispatchEvent(new Event('resize'));
+
+    if (fullscreenWindowFrame && window.parent !== window) {
+        window.parent.postMessage({type: 'windowed-fullscreen-request'}, '*');
+    }
 }
 
 
