@@ -28,7 +28,13 @@
       "all_frames": true
     }
   ],
-  "permissions": ["activeTab", "storage"]
+  "permissions": ["activeTab", "storage"],
+  "web_accessible_resources": [
+    {
+      "resources": ["html/choice.html", "css/choice.css", "js/choice.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 
 
 }

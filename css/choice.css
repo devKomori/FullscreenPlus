@@ -1,0 +1,78 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    overflow: hidden;
+    color: #fff;
+    background: transparent;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.choice-backdrop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+
+.choice-dialog {
+    width: 320px;
+    padding: 25px;
+    border-radius: 10px;
+    background: #0b1622;
+    border: #3577ff 1px solid;
+    box-shadow: 0px 0px 20px rgba(53, 119, 255, 0.8);
+    text-align: center;
+}
+
+h1 {
+    margin: 0 0 12px;
+    color: #fff;
+    font: 700 22px/1.2 Arial, sans-serif;
+}
+
+h1 span {
+    color: #3577ff;
+}
+
+p {
+    margin: 0 0 20px;
+    color: #ccc;
+    font: 400 14px/1.5 Arial, sans-serif;
+}
+
+.choice-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+button {
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 5px;
+    color: #fff;
+    background: #3577ff;
+    cursor: pointer;
+    font: 400 14px/1.5 Arial, sans-serif;
+}
+
+button:hover {
+    background: #2864dc;
+}

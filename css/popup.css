@@ -4,25 +4,39 @@ body {
     height: auto;
     color: whitesmoke;
     margin: 0;
-    font-family: Inter, sans-serif;
+    font-family: Arial, sans-serif !important;
+    line-height: 1.5;
 }
 
 h2 {
-    text-align: center;
+    text-align: center !important;
+    font-size: 18px !important;
 }
 .accent {
     color: #3577ff;
 }
 
 p {
+    font-size: 12px !important;
     margin: 15px;
-    color: #ccc;
+    color: #ccc !important;
 }
 
 footer {
-    text-align: center;
-    font-size: 12px;
+    text-align: center !important;
+    font-size: 12px !important;
 }
+
+hr {
+    border: 0;
+    height: 2px;
+    background: #172e48;
+}
+
+a {
+    color: #3577ff;
+}
+
 
 .radio-label {
     display: flex;
