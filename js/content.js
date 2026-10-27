@@ -1,6 +1,6 @@
 const fullscreenClass = 'windowed-mode-fullscreen';
 const hostname = location.hostname.replace(/^www\./, '');
-const validModes = new Set(['ask', 'in-window', 'native-fullscreen']);
+const validModes = new Set(['ask', 'in-window', 'native']);
 let fullscreenWindowElement = null;
 let fullscreenWindowFrame = null;
 let fullscreenChoiceOverlay = null;
@@ -8,8 +8,7 @@ let fullscreenChoiceFrame = null;
 let fullscreenChoiceRequestSource = null;
 let fullscreenChoiceRequestOrigin = null;
 let currentMode = 'ask';
-let deferredMode = null; // Temporarily stores mode change made while fullscreen is active to prevent disruption. Applied after exiting fullscreen.
-
+let deferredMode = null; // Temporarily stores potential mode change to not interfere with active fullscreen
 
 
 // MODE MANAGEMENT
@@ -61,17 +60,13 @@ const messageHandlers = {
     'fullscreen-mode-update': handleModeUpdate,
     'fullscreen-mode-query': handleModeQuery,
     'fullscreen-choice-request': handleChoiceRequest,
-    'fullscreen-choice-selected': handleChoiceSelected,
-    'fullscreen-choice-dismiss': handleChoiceDismiss,
     'windowed-fullscreen-request': handleWindowedRequest,
     'windowed-fullscreen-exit': handleWindowedExit,
 };
 
-window.addEventListener('message', (event) => {
-    const type = event.data?.type;
-    if (!type || !messageHandlers[type]) return;
-
-    messageHandlers[type](event);
+window.addEventListener('message', event => {
+    const handler = messageHandlers[event.data?.type];
+    if (handler) handler(event);
 });
 
 
@@ -98,7 +93,7 @@ function handleModeQuery(event) {
         event.source.postMessage({
             type: 'fullscreen-mode-update',
             mode: currentMode
-        }, event.origin);
+        }, event.origin || '*');
     }
 }
 
@@ -112,27 +107,6 @@ function handleChoiceRequest(event) {
         return;
     }
     showFullscreenChoice(event.source, event.origin);
-}
-
-
-function handleChoiceSelected(event) {
-    if (!fullscreenChoiceFrame ||
-        event.source !== fullscreenChoiceFrame.contentWindow ||
-        !validModes.has(event.data.mode)) {
-        return;
-    }
-    fullscreenChoiceRequestSource?.postMessage({
-        type: 'fullscreen-choice-response',
-        mode: event.data.mode
-    }, fullscreenChoiceRequestOrigin || window.location.origin);
-    removeFullscreenChoice();
-}
-
-
-function handleChoiceDismiss(event) {
-    if (fullscreenChoiceFrame && event.source === fullscreenChoiceFrame.contentWindow) {
-        removeFullscreenChoice();
-    }
 }
 
 
@@ -167,7 +141,7 @@ function handleWindowedExit(event) {
 }
 
 
-// FULLSCREEN MANAGEMENT
+// SHADOW DOM MODAL CHOICE IMPLEMENTATION
 
 function showFullscreenChoice(requestSource, requestOrigin) {
     if (fullscreenChoiceOverlay) {
@@ -177,29 +151,144 @@ function showFullscreenChoice(requestSource, requestOrigin) {
     fullscreenChoiceOverlay.className = 'fullscreen-choice-overlay';
     fullscreenChoiceRequestSource = requestSource;
     fullscreenChoiceRequestOrigin = requestOrigin;
-    fullscreenChoiceFrame = document.createElement('iframe');
-    fullscreenChoiceFrame.title = 'Fullscreen display options';
-    fullscreenChoiceFrame.src = chrome.runtime.getURL('html/choice.html');
-    fullscreenChoiceOverlay.appendChild(fullscreenChoiceFrame);
-    fullscreenChoiceFrame.addEventListener('load', () => {
-        fullscreenChoiceFrame?.contentWindow?.postMessage({
-            type: 'fullscreen-choice-context',
-            requestOrigin
-        }, '*');
-    }, {once: true});
 
+    // Attach Shadow DOM for perfect CSS isolation
+    const shadow = fullscreenChoiceOverlay.attachShadow({mode: 'open'});
+
+    const style = document.createElement('style');
+    style.textContent = `
+        .backdrop {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(8, 8, 16, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            animation: vfs-fade-in 0.18s ease-out;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            color: #e8e8f0;
+        }
+        @keyframes vfs-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        
+        .dialog {
+            width: 380px;
+            max-width: calc(100vw - 32px);
+            padding: 24px;
+            border-radius: 16px;
+            background: linear-gradient(160deg, #1c1c2a, #14141f);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+            text-align: left;
+            animation: vfs-pop-in 0.18s ease-out;
+        }
+        @keyframes vfs-pop-in { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
+        
+        h1 { margin: 0 0 8px; color: #fff; font: 650 20px/1.2 -apple-system, system-ui, sans-serif; }
+        p { margin: 0 0 20px; color: #8080a0; font: 400 14px/1.5 -apple-system, system-ui, sans-serif; }
+        .option-icon { font-size: 18px;  margin-right: 8px; vertical-align: middle; }
+        
+        .actions { display: flex; gap: 10px; flex-direction: column; }
+        
+        button {
+            padding: 14px 18px;
+            border: 1px solid rgba(53, 119, 255, 0.3);
+            border-radius: 11px;
+            color: #fff;
+            background: rgba(53, 119, 255, 0.1);
+            cursor: pointer;
+            font: 600 14px/1.5 -apple-system, system-ui, sans-serif;
+            transition: all 0.15s ease;
+            text-align: left;
+            width: 100%;
+        }
+        button:hover { background: rgba(53, 119, 255, 0.2); border-color: #3577ff; transform: translateY(-1px); }
+        
+        button.cancel { 
+            padding: 10px 18px;
+            background: transparent; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            color: #8080a0; 
+            font-weight: 500; 
+            margin-top: 8px; 
+            text-align: center; 
+        }
+        button.cancel:hover { color: #ff8080; border-color: rgba(255, 100, 100, 0.25); transform: none; }
+    `;
+
+    const html = `
+        <div class="backdrop">
+            <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="choice-title">
+                <h1 id="choice-title">Choose Fullscreen Mode</h1>
+                <p>How should this video be displayed?</p>
+                <div class="actions">
+                    <button type="button" data-mode="in-window"><span class=option-icon>🗔</span> In-window fullscreen</button>
+                    <button type="button" data-mode="native"><span class=option-icon>⛶</span> Native fullscreen</button>
+                    <button type="button" class="cancel" data-mode="cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    shadow.appendChild(style);
+
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    shadow.appendChild(template.content.cloneNode(true));
+
+    // Event handling inside Shadow DOM
+    shadow.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-mode]');
+        if (button) {
+            const mode = button.dataset.mode;
+            if (mode === 'cancel') {
+                dismissChoice();
+            } else {
+                selectChoice(mode);
+            }
+        }
+    });
+
+    // Close the fullscreen choice overlay if clicking outside the dialog
+    const backdrop = shadow.querySelector('.backdrop');
+    if (backdrop) {
+        backdrop.addEventListener('click', (event) => {
+            if (event.target === backdrop) {
+                dismissChoice();
+            }
+        });
+    }
     document.documentElement.appendChild(fullscreenChoiceOverlay);
+}
+
+
+function selectChoice(mode) {
+    if (['in-window', 'native'].includes(mode)) {
+        // Use '*' to guarantee delivery regardless of origin matching quirks between MAIN/ISOLATED worlds
+        fullscreenChoiceRequestSource?.postMessage({ type: 'fullscreen-choice-response', mode }, '*');
+    }
+    removeFullscreenChoice();
+}
+
+
+function dismissChoice() {
+    if (fullscreenChoiceRequestSource) {
+        fullscreenChoiceRequestSource.postMessage({ type: 'fullscreen-choice-response', mode: null }, '*');
+    }
+    removeFullscreenChoice();
 }
 
 
 function removeFullscreenChoice() {
     fullscreenChoiceOverlay?.remove();
     fullscreenChoiceOverlay = null;
-    fullscreenChoiceFrame = null;
     fullscreenChoiceRequestSource = null;
     fullscreenChoiceRequestOrigin = null;
 }
 
+
+// FULLSCREEN MANAGEMENT
 
 function applyModeAfterExit(requestSource, requestOrigin) {
     if (deferredMode !== null) {
@@ -233,12 +322,12 @@ function enterWindowedFullscreen(element) {
 
     // CustomEvent to safely attach the windowedFullscreen detail
     document.dispatchEvent(new CustomEvent('fullscreenchange', {
-        detail: { windowedFullscreen: true }
+        detail: {windowedFullscreen: true}
     }));
     window.dispatchEvent(new Event('resize'));
 
     if (fullscreenWindowFrame && window.parent !== window) {
-        window.parent.postMessage({ type: 'windowed-fullscreen-request' }, '*');
+        window.parent.postMessage({type: 'windowed-fullscreen-request'}, '*');
     }
 }
 
@@ -250,9 +339,8 @@ function fullscreenExit() {
     fullscreenWindowElement.classList.remove(fullscreenClass);
     fullscreenWindowElement = null;
 
-    
     document.dispatchEvent(new CustomEvent('fullscreenchange', {
-        detail: { windowedFullscreen: true }
+        detail: {windowedFullscreen: true}
     }));
     window.dispatchEvent(new Event('resize'));
 }

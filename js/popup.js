@@ -1,129 +1,113 @@
-const radioGroup = 'input[name="fullscreen-setting"]';
-const websiteName = document.getElementById('website-name');
+const radioGroup = 'input[name="mode"]';
+const siteHost = document.getElementById('siteHost');
+const banner = document.getElementById('banner');
+const settingsView = document.getElementById('settingsView');
+const statusEl = document.getElementById('status');
 let activeSite = null;
 
-
-function showUnsupportedPage() {
-    document.body.innerHTML = `
-        <div class="unsupported-page">
-            <h2>Fullscreen <span class="accent">+</span></h2>
-            <p>This extension is not supported on this page.</p>
-        </div>
-    `;
-}
-
-function showRefreshPage() {
-    document.body.innerHTML = `
-        <div class="refresh-page">
-            <h2>Fullscreen <span class="accent">+</span></h2>
-            <p>Refresh the page to enable the extension</p>
-            <button id="refresh-page-button" type="button">Refresh page</button>
-        </div>
-    `;
-
-    document.getElementById('refresh-page-button')
-        .addEventListener('click', async (event) => {
-            const button = event.currentTarget;
-            button.disabled = true;
-
-            try {
-                await chrome.tabs.reload(activeSite.tab.id);
-                window.close();
-            } catch (error) {
-                button.disabled = false;
-                console.error('Unable to refresh the page:', error);
-            }
-        });
-}
+const LABELS = {'in-window': 'In-window fullscreen', 'native': 'Native fullscreen', 'ask': 'Ask every time'};
 
 
-async function getActiveTab() {
+document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
-
+        const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
         if (!tab?.url) {
-            showUnsupportedPage();
+            showUnsupported();
             return;
         }
         const url = new URL(tab.url);
-
-        if (!['http:', 'https:'].includes(url.protocol)) {
-            showUnsupportedPage();
+        if (!['http:', 'https:'].includes(url.protocol) || url.hostname.includes('chromewebstore.google.com')) {
+            showUnsupported();
             return;
         }
-        websiteName.textContent = url.hostname.replace(/^www\./, '');
-        return {
-            tab,
-            hostname: url.hostname.replace(/^www\./, '')
-        };
-    } catch {
-        showUnsupportedPage();
-    }
-}
+
+        activeSite = {tab, hostname: url.hostname};
+        siteHost.textContent = url.hostname.replace(/^www\./, '');
+        document.querySelector('.version').textContent =
+            `v${chrome.runtime.getManifest().version}`;
 
 
-async function getPreferences() {
-    const result = await chrome.storage.local.get('fullscreenPreferences');
-    return result.fullscreenPreferences || {}; // Return an empty object if no preferences are found
-}
-
-
-async function sendMode(mode) {
-    if (!activeSite) {
-        return;
-    }
-    try {
-        await chrome.tabs.sendMessage(activeSite.tab.id, {type: 'fullscreen-mode-update', mode});
-        return true;
-    }
-    catch (error) {
-        if (error?.message.includes('Receiving end does not exist')) {
-            showRefreshPage();
-            return false;
+        // We need to check if the page needs a refresh (e.g., the extension was just installed)
+        const sessionData = await chrome.storage.session.get(`needsRefresh_${tab.id}`);
+        if (sessionData[`needsRefresh_${tab.id}`]) {
+            await showRefreshPage();
+            return;
         }
-        throw error;
+
+        const result = await chrome.storage.sync.get('fullscreenPreferences');
+        const preferences = result.fullscreenPreferences || {};
+        const mode = preferences[url.hostname] || 'ask';
+
+        const selectedRadio = document.querySelector(`${radioGroup}[value="${mode}"]`);
+        if (selectedRadio) selectedRadio.checked = true;
+
+        try {
+            await chrome.tabs.sendMessage(tab.id, {
+                type: 'fullscreen-mode-update',
+                mode
+            });
+        } catch (error) {
+            await showRefreshPage();
+        }
+
+    } catch (e) {
+        showUnsupported();
     }
-}
-
-
-async function loadSetting() {
-    if (!activeSite) {
-        return;
-    }
-    const preferences = await getPreferences();
-    const mode = preferences[activeSite.hostname] || 'ask';
-
-    const selectedRadio = document.querySelector(`${radioGroup}[value="${mode}"]`);
-    if (selectedRadio) {
-        selectedRadio.checked = true;
-    }
-    await sendMode(mode);
-}
-
-
-async function saveSetting(mode) {
-    if (!activeSite) {
-        return;
-    }
-    const preferences = await getPreferences();
-    preferences[activeSite.hostname] = mode;
-
-    await chrome.storage.local.set({fullscreenPreferences: preferences});
-    await sendMode(mode);
-}
-
-document.querySelectorAll(radioGroup).forEach((radio) => {
-    radio.addEventListener('change', async (event) => {
-        await saveSetting(event.target.value);
-    });
 });
 
 
-async function initSettings() {
-    activeSite = await getActiveTab();
-    if (activeSite) {
-        await loadSetting();
-    }
+function showUnsupported() {
+    banner.style.display = 'flex';
+    settingsView.classList.add('disabled');
+    document.querySelectorAll(radioGroup).forEach(r => r.disabled = true);
+    statusEl.textContent = 'Unavailable';
 }
 
-initSettings();
+
+async function showRefreshPage() {
+    // Flag the tab to indicate that it needs a refresh to enable the extension
+    if (activeSite?.tab?.id) {
+        await chrome.storage.session.set({[`needsRefresh_${activeSite.tab.id}`]: true});
+    }
+    chrome.action.setTitle({title: 'Restart your browser or refresh on tabs to enable the extension'});
+    banner.style.display = 'flex';
+    banner.style.cursor = 'pointer';
+    banner.querySelector('.banner-title').textContent = 'Refresh page';
+    banner.querySelector('.banner-text').textContent = 'Refresh to enable the extension.';
+    banner.querySelector('.banner-icon').textContent = '⭮';
+    banner.querySelector('.banner-icon').style.color = '#fff';
+
+    banner.onclick = async () => {
+        if (!activeSite?.tab?.id) return;
+        // Remove the refresh flag and reload the tab
+        await chrome.storage.session.remove(`needsRefresh_${activeSite.tab.id}`);
+        await chrome.tabs.reload(activeSite.tab.id);
+        window.close();
+    };
+    settingsView.classList.add('disabled');
+    document.querySelectorAll(radioGroup).forEach(r => r.disabled = true);
+    statusEl.textContent = 'Refresh required';
+}
+
+
+document.querySelectorAll(radioGroup).forEach(radio => {
+    radio.addEventListener('change', async (event) => {
+        if (!activeSite) return;
+        const mode = event.target.value;
+
+        const result = await chrome.storage.sync.get('fullscreenPreferences');
+        const preferences = result.fullscreenPreferences || {};
+        preferences[activeSite.hostname] = mode;
+        await chrome.storage.sync.set({fullscreenPreferences: preferences});
+
+        chrome.tabs.sendMessage(activeSite.tab.id, {type: 'fullscreen-mode-update', mode}).catch(() => {
+        });
+
+        statusEl.textContent = `✓ Saved - ${LABELS[mode]} on ${activeSite.hostname}`;
+        statusEl.classList.add('saved');
+        setTimeout(() => {
+            statusEl.classList.remove('saved');
+            statusEl.textContent = 'Ready';
+        }, 2000);
+    });
+});

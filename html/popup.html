@@ -1,43 +1,81 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>Document</title>
+    <title>Fullscreen Plus</title>
     <link rel="stylesheet" href="/css/popup.css">
-
 </head>
+
 <body>
+<div class="app">
+    <header class="header">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="5" width="20" height="14" rx="2" stroke="url(#lg)" stroke-width="2"/>
+                <path d="M10 9l5 3-5 3V9z" fill="url(#lg)"/>
+                <defs>
+                    <linearGradient id="lg" x1="0" y1="0" x2="24" y2="24">
+                        <stop offset="0" stop-color="#3577ff"/>
+                        <stop offset="1" stop-color="#00d4ff"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span class="logo-text">Fullscreen+</span>
+        </div>
+    </header>
 
-<div class="container">
-    <h2>Fullscreen <span class="accent">+</span></h2>
-    <p>Fullscreen on <span style="font-style: italic" id="website-name">this website</span> should always:</p>
+    <main class="main">
 
+        <div id="settingsView">
+            <div class="site-info">
+                <div class="site-label">Active on</div>
+                <div class="host" id="siteHost">...</div>
+            </div>
 
-    <div id="radio-container">
-        <label class="radio-label">
-            <input type="radio" class="radio-group" name="fullscreen-setting" value="ask">
-            Ask
-        </label>
-        <label class="radio-label">
-            <input type="radio" class="radio-group" name="fullscreen-setting" value="in-window">
-            In-window
-        </label>
-        <label class="radio-label">
-            <input type="radio" class="radio-group" name="fullscreen-setting" value="native-fullscreen">
-            Fullscreen
-        </label>
-    </div>
+            <div class="pref-block">
+                <div class="pref-heading">Always use</div>
+                <div class="options">
 
-    <footer>
-        <hr>
-        <p>View on <a href="https://github.com/devKomori/FullscreenPlus" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+                    <label class="option">
+                        <input type="radio" name="mode" value="ask">
+                        <span class="option-body"><span class="option-icon">💬</span><span class="option-text"><span
+                                class="option-title">Ask</span><span class="option-desc">Display a choice each
+                    time</span></span></span>
+                    </label>
+
+                    <label class="option">
+                        <input type="radio" name="mode" value="in-window">
+                        <span class="option-body"><span class="option-icon">🗔</span><span class="option-text"><span
+                                class="option-title">In-window fullscreen</span><span class="option-desc">Fullscreen in the browser
+                    window</span></span></span>
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mode" value="native">
+                        <span class="option-body"><span class="option-icon">⛶</span><span class="option-text"><span
+                                class="option-title">
+                    Native fullscreen
+                  </span><span class="option-desc">Traditional fullscreen experience</span></span></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="banner" id="banner" style="display:none;">
+            <span class="banner-icon" style="color: #FF5555;">🛇</span>
+            <div>
+                <div class="banner-title">Disabled on this page</div>
+                <div class="banner-text">This extension is not supported on this page.</div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="status" id="status">Ready</div>
+        <div class="version"></div>
     </footer>
-
-
 </div>
-
-<script src="../js/popup.js"></script>
+<script src="/js/popup.js"></script>
 </body>
+
 </html>

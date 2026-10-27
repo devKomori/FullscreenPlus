@@ -14,7 +14,7 @@
     background: black !important;
 }
 
-
+/* The Host for the Choice Modal (Shadow DOM) */
 .fullscreen-choice-overlay {
     position: fixed !important;
     inset: 0 !important;
@@ -25,14 +25,7 @@
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
-}
-
-
-.fullscreen-choice-overlay iframe {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
     border: 0 !important;
 }
+
+@keyframes vfs-fade-in { from { opacity: 0; } to { opacity: 1; } }
