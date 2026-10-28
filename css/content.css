@@ -1,20 +1,62 @@
-*:has(.windowed-mode-fullscreen) {
-    all: initial !important; /* resets all styles and fixes UI showing on video players for some websites */
-    overflow: hidden !important; /* prevent scrolling */
-    background: black !important;
+/* reversible windowed fullscreen styles. */
+
+html[data-vfp-locked],
+body[data-vfp-locked] {
+    overflow: hidden !important;
 }
 
+[data-vfp-hidden] {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
 
-.windowed-mode-fullscreen {
+/* Remove containing blocks and clipping that prevent position:fixed from
+   reaching the viewport. Only the ACTIVE ELEMENT'S actual ancestor chain
+   receives this attribute, and all attributes are removed on exit. */
+[data-vfp-ancestor] {
+    transform: none !important;
+    translate: none !important;
+    scale: none !important;
+    rotate: none !important;
+    perspective: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    contain: none !important;
+    content-visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    clip-path: none !important;
+    mask: none !important;
+    isolation: auto !important;
+    will-change: auto !important;
+    visibility: visible !important;
+}
+
+[data-vfp-active] {
     position: fixed !important;
     inset: 0 !important;
-    z-index: 2147483647 !important;
-    width: 100% !important;
-    height: 100% !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    z-index: 2147483646 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    contain: none !important;
     background: black !important;
 }
 
-/* The Host for the Choice Modal (Shadow DOM) */
+iframe[data-vfp-active] {
+    border: 0 !important;
+    padding: 0 !important;
+}
+
+/* The Shadow DOM dialog stays above ordinary windowed content. */
 .fullscreen-choice-overlay {
     position: fixed !important;
     inset: 0 !important;
@@ -27,5 +69,3 @@
     background: transparent !important;
     border: 0 !important;
 }
-
-@keyframes vfs-fade-in { from { opacity: 0; } to { opacity: 1; } }

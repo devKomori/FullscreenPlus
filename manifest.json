@@ -1,8 +1,8 @@
 {
   "name": "Fullscreen+ | Windowed Fullscreen & Volume Booster",
   "short_name": "Fullscreen+",
-  "description": "Control your browser's fullscreen behavior. Enjoy videos in Windowed Fullscreen, Native Fullscreen, and Volume Boosting.",
-  "version": "2.0.0",
+  "description": "Enjoy videos in Windowed or Native Fullscreen, and Volume Boosting.",
+  "version": "3.0.0",
   "manifest_version": 3,
   "icons": {
     "16": "imgs/icon.png",
@@ -26,6 +26,7 @@
       "js": ["js/content.js"],
       "css": ["css/content.css"],
       "run_at": "document_start",
+      "world": "ISOLATED",
       "all_frames": true
     }
   ],
