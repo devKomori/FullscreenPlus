@@ -40,6 +40,7 @@
         window.postMessage({channel: CHANNEL, type, ...extra}, '*');
     const abortError = (reason) => new DOMException(reason, 'AbortError');
 
+
     function findMarkedElement(root, id) {
         if (!root) return null;
         const all = root.querySelectorAll?.('*') || [];
@@ -63,9 +64,10 @@
                 }
             });
         } catch (e) {
-            console.debug('[VideoFullscreen Pro] Cannot override', name, e);
+            console.debug('[FullscreenPlus] Cannot override', name, e);
         }
     }
+
 
     // Native events are fired on the fullscreen target and bubble to document;
     // dispatch there so listeners attached to the PLAYER also run.
@@ -95,6 +97,7 @@
         }
     }
 
+
     function clearPending(error) {
         if (!pending) return;
         const old = pending;
@@ -104,6 +107,22 @@
         old.reject(error || abortError('Fullscreen request was canceled.'));
     }
 
+
+    function cancelPending() {
+        if (!pending) return;
+
+        const old = pending;
+        pending = null;
+        clearTimeout(old.timer);
+
+        if (old.element.getAttribute(MARKER) === old.id) {
+            old.element.removeAttribute(MARKER);
+        }
+
+        old.resolve();
+    }
+
+
     function beginWindowed(request) {
         request.element.setAttribute(MARKER, request.id);
         // The isolated content script acknowledges only this ID, not the first matching marker.
@@ -112,6 +131,7 @@
             if (pending === request) clearPending(new DOMException('Fullscreen content script did not respond.', 'NotSupportedError'));
         }, 4000);
     }
+
 
     function nativeFromPending(request) {
         if (pending !== request) return;
@@ -125,20 +145,23 @@
         }
     }
 
+
     function handleChoice(id, selectedMode) {
         if (!pending || pending.id !== id) return;
+
         if (selectedMode === 'native') {
             nativeFromPending(pending);
         } else if (selectedMode === 'in-window') {
             beginWindowed(pending);
         } else {
-            clearPending(abortError('User canceled fullscreen.'));
+            cancelPending();
         }
     }
 
+
     function beginRequest(element, nativeCall) {
         if (currentElement) exitSimulatedFullscreen();
-        if (pending) clearPending(abortError('Another fullscreen request replaced this one.'));
+        if (pending) cancelPending();
         const id = `vfp-${Date.now()}-${++requestCounter}-${Math.random().toString(36).slice(2)}`;
         return new Promise((resolve, reject) => {
             pending = {id, element, nativeCall, resolve, reject, timer: null};
@@ -153,6 +176,7 @@
             }
         });
     }
+
 
     function enterConfirmed(id) {
         if (pending && pending.id === id) {
@@ -174,6 +198,7 @@
         }
     }
 
+
     function exitSimulatedFullscreen() {
         if (!currentElement) return;
         const oldElement = currentElement;
@@ -184,6 +209,7 @@
         emit('exit', {id});
         dispatchFullscreenEvents(oldElement);
     }
+
 
     window.addEventListener('message', (event) => {
         if (event.source !== window || event.data?.channel !== CHANNEL) return;
@@ -215,6 +241,7 @@
         }
     });
 
+
     for (const name of requests) {
         const original = Element.prototype[name];
         if (typeof original !== 'function') continue;
@@ -228,9 +255,10 @@
                 }
             });
         } catch (e) {
-            console.debug('[VideoFullscreen Pro] Cannot hook', name, e);
+            console.debug('[FullscreenPlus] Cannot hook', name, e);
         }
     }
+
 
     for (const name of exits) {
         const original = Document.prototype[name];
@@ -245,16 +273,17 @@
                         return Promise.resolve();
                     }
                     if (pending) {
-                        clearPending(abortError('Fullscreen request was canceled.'));
+                        cancelPending();
                         return Promise.resolve();
                     }
                     return original.apply(this, args);
                 }
             });
         } catch (e) {
-            console.debug('[VideoFullscreen Pro] Cannot hook', name, e);
+            console.debug('[FullscreenPlus] Cannot hook', name, e);
         }
     }
+
 
     document.addEventListener('fullscreenchange', event => {
         if (event.detail?.windowedFullscreen) return;

@@ -46,6 +46,7 @@
         }
     }
 
+
     function setMode(value) {
         currentMode = MODES.has(value) ? value : 'ask';
         modeReady = true;
@@ -54,6 +55,7 @@
         if (currentMode !== 'ask' && fullscreenChoiceOverlay) dismissChoice();
     }
 
+
     async function loadMode() {
         if (!isTop) return;
         try {
@@ -61,10 +63,11 @@
             const hostname = location.hostname;
             setMode(result.fullscreenPreferences?.[hostname] || 'ask');
         } catch (error) {
-            console.warn('[VideoFullscreen Pro] Could not load fullscreen preference:', error);
+            console.warn('[FullscreenPlus] Could not load fullscreen preference:', error);
             setMode('ask');
         }
     }
+
 
     function collectElements(root, predicate) {
         const result = [];
@@ -78,14 +81,17 @@
         return result;
     }
 
+
     function getMarkedElement(id) {
         return collectElements(document, el => el.getAttribute(MARKER) === id)[0] || null;
     }
+
 
     function getFrameForSource(source) {
         return collectElements(document, el => el.tagName === 'IFRAME')
             .find(frame => frame.contentWindow === source) || null;
     }
+
 
     // Track precisely which attributes the extension added so exit is reversible.
     function putAttribute(state, element, name) {
@@ -98,6 +104,7 @@
         props.set(name, element.getAttribute(name));
         element.setAttribute(name, '');
     }
+
 
     // A few players use inline !important declarations that beat injected CSS.
     // Override only conflicting values; preserve and restore every original value.
@@ -118,6 +125,7 @@
             element.style.setProperty(property, value, 'important');
         }
     }
+
 
     function fixBlockingInlineStyles(state, element, ancestor) {
         const computed = getComputedStyle(element);
@@ -149,6 +157,7 @@
         }
     }
 
+
     const SHADOW_CSS = `
         [data-vfp-hidden] { visibility: hidden !important; pointer-events: none !important; }
         [data-vfp-ancestor] {
@@ -175,6 +184,7 @@
         iframe[data-vfp-active] { border: 0 !important; padding: 0 !important; }
     `;
 
+
     function ensureShadowStyle(state, root) {
         if (!(root instanceof ShadowRoot) || state.shadowStyles.has(root)) return;
         const style = document.createElement('style');
@@ -184,6 +194,7 @@
         state.observer.observe(root, {childList: true, subtree: true});
     }
 
+
     function markSiblings(state, parent, branch) {
         for (const sibling of parent.children || []) {
             if (sibling === branch || sibling === fullscreenChoiceOverlay) continue;
@@ -191,6 +202,7 @@
             putAttribute(state, sibling, HIDDEN);
         }
     }
+
 
     function refreshLayout(state) {
         let branch = state.element;
@@ -224,6 +236,7 @@
         fixBlockingInlineStyles(state, state.element, false);
     }
 
+
     function cleanUpActive() {
         if (!active) return null;
         const old = active;
@@ -250,6 +263,7 @@
         sendModeToPage();
         return old;
     }
+
 
     function enterWindowedFullscreen(element, id, fromChild = false) {
         if (active?.element === element && active.id === id) return true;
@@ -286,6 +300,7 @@
         return true;
     }
 
+
     function exitWindowedFullscreen() {
         const old = cleanUpActive();
         if (!old) return;
@@ -299,6 +314,7 @@
         }
         toParent('frame-exit', {id: old.id});
     }
+
 
     // Messages from the MAIN-world hook in this frame.
     function handleLocalMessage(data) {
@@ -328,6 +344,7 @@
         }
     }
 
+
     function handleChildMessage(event, data) {
         const frame = getFrameForSource(event.source);
         if (!frame) return;
@@ -353,6 +370,7 @@
         }
     }
 
+
     function handleParentMessage(data) {
         switch (data.type) {
             case 'frame-mode':
@@ -371,6 +389,7 @@
                 break;
         }
     }
+
 
     window.addEventListener('message', event => {
         if (event.data?.channel !== CHANNEL) return;
@@ -404,6 +423,7 @@
 
     if (isTop) loadMode();
     else toParent('frame-mode-query');
+
 
     function showFullscreenChoice(target) {
         if (fullscreenChoiceOverlay) {

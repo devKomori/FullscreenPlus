@@ -3,26 +3,16 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Fullscreen Plus</title>
+    <title>FullscreenPlus</title>
     <link rel="stylesheet" href="/css/popup.css">
 </head>
 
 <body>
 <div class="app">
     <header class="header">
-        <div class="logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect x="2" y="5" width="20" height="14" rx="2" stroke="url(#lg)" stroke-width="2"/>
-                <path d="M10 9l5 3-5 3V9z" fill="url(#lg)"/>
-                <defs>
-                    <linearGradient id="lg" x1="0" y1="0" x2="24" y2="24">
-                        <stop offset="0" stop-color="#3577ff"/>
-                        <stop offset="1" stop-color="#00d4ff"/>
-                    </linearGradient>
-                </defs>
-            </svg>
-            <span class="logo-text">Fullscreen+</span>
-        </div>
+        <span class="header-text">
+            <span class="highlight">Fullscreen</span>Plus
+        </span>
     </header>
 
     <main class="main">
@@ -59,7 +49,17 @@
                     </label>
                 </div>
             </div>
+
+            <!-- Volume Boost Section -->
+            <div class="pref-block">
+                <div class="pref-heading">Volume Boost</div>
+                <div id="volume-bar">
+                    <input type="range" id="volumeBoost" min="100" max="400" value="100" step="10">
+                    <span id="volumeValue">100%</span>
+                </div>
+            </div>
         </div>
+
 
         <div class="banner" id="banner" style="display:none;">
             <span class="banner-icon" style="color: #FF5555;">🛇</span>
@@ -76,6 +76,7 @@
     </footer>
 </div>
 <script src="/js/popup.js"></script>
+<script src="/js/volume.js"></script>
 </body>
 
 </html>

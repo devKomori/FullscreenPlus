@@ -42,10 +42,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (selectedRadio) selectedRadio.checked = true;
 
         try {
-            await chrome.tabs.sendMessage(tab.id, {
-                type: 'fullscreen-mode-update',
-                mode
-            });
+            await chrome.tabs.sendMessage(tab.id, {type: 'fullscreen-mode-update', mode});
+
         } catch (error) {
             await showRefreshPage();
         }
@@ -58,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function showUnsupported() {
     banner.style.display = 'flex';
+    document.getElementsByClassName('site-info')[0].style.display = 'none';
     settingsView.classList.add('disabled');
     document.querySelectorAll(radioGroup).forEach(r => r.disabled = true);
     statusEl.textContent = 'Unavailable';
@@ -69,7 +68,6 @@ async function showRefreshPage() {
     if (activeSite?.tab?.id) {
         await chrome.storage.session.set({[`needsRefresh_${activeSite.tab.id}`]: true});
     }
-    chrome.action.setTitle({title: 'Restart your browser or refresh on tabs to enable the extension'});
     banner.style.display = 'flex';
     banner.style.cursor = 'pointer';
     banner.querySelector('.banner-title').textContent = 'Refresh page';
@@ -84,6 +82,7 @@ async function showRefreshPage() {
         await chrome.tabs.reload(activeSite.tab.id);
         window.close();
     };
+    document.getElementsByClassName('site-info')[0].style.display = 'none';
     settingsView.classList.add('disabled');
     document.querySelectorAll(radioGroup).forEach(r => r.disabled = true);
     statusEl.textContent = 'Refresh required';
@@ -110,4 +109,47 @@ document.querySelectorAll(radioGroup).forEach(radio => {
             statusEl.textContent = 'Ready';
         }, 2000);
     });
+});
+
+
+// volume.js - Handles volume boost slider in the popup
+
+const volumeBoostSlider = document.getElementById('volumeBoost');
+const volumeValueDisplay = document.getElementById('volumeValue');
+
+// Initialize when popup opens
+document.addEventListener('DOMContentLoaded', async () => {
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    if (!tab?.id) return;
+
+    try {
+        const response = await chrome.runtime.sendMessage({type: 'get-volume-boost', tabId: tab.id});
+        const currentVolume = response?.volume || 100;
+
+        volumeBoostSlider.value = currentVolume;
+        volumeValueDisplay.textContent = `${currentVolume}%`;
+    } catch (error) {
+        // Content script not loaded yet, default to 100%
+        volumeBoostSlider.value = 100;
+        volumeValueDisplay.textContent = '100%';
+    }
+});
+
+// Handle slider changes
+volumeBoostSlider.addEventListener('input', async (event) => {
+    const boost = parseInt(event.target.value, 10);
+    volumeValueDisplay.textContent = `${boost}%`;
+
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    if (!tab?.id) return;
+
+    chrome.runtime.sendMessage({
+        type: 'volume-boost-update',
+        tabId: tab.id,
+        volume: boost
+    }).then(response => {
+        if (!response?.success) {
+            console.warn('Volume boost failed:', response?.error);
+        }
+    }).catch(console.error);
 });

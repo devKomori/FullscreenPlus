@@ -39,19 +39,13 @@ body {
     background: linear-gradient(135deg, rgba(53, 119, 255, 0.08), rgba(0, 212, 255, 0.08));
 }
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.logo-text {
+.header-text {
     font-size: 15px;
     font-weight: 600;
-    background: linear-gradient(90deg, #3577ff, #00d4ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent);
+}
+.header-text .highlight {
+    color: var(--text);
 }
 
 .main {
@@ -103,7 +97,6 @@ body {
 }
 
 
-
 .host {
     font-family: 'SF Mono', Menlo, Consolas, monospace;
     font-size: 13px;
@@ -143,13 +136,13 @@ body {
     border-color: var(--border-strong);
 }
 
-.option input:checked+.option-body {
+.option input:checked + .option-body {
     background: linear-gradient(135deg, rgba(53, 119, 255, 0.16), rgba(0, 212, 255, 0.07));
     border-color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent), 0 2px 12px rgba(53, 119, 255, 0.18);
 }
 
-.option input:focus-visible+.option-body {
+.option input:focus-visible + .option-body {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
 }
@@ -179,11 +172,11 @@ body {
     color: var(--text-muted);
 }
 
-.option input:checked+.option-body .option-title {
-    color: #fff;
+.option input:checked + .option-body .option-title {
+    color: var(--text)
 }
 
-.option input:checked+.option-body .option-desc {
+.option input:checked + .option-body .option-desc {
     color: var(--text-dim);
 }
 
@@ -240,4 +233,25 @@ body {
     display: flex;
     flex-direction: column;
     gap: 2px;
+}
+
+
+/* VOLUME BOOST STYLING */
+#volume-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#volumeBoost {
+    flex: 1;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+#volumeValue {
+    min-width: 45px;
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 14px;
 }
