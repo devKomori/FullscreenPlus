@@ -1,0 +1,52 @@
+{
+  "name": "FullscreenPlus - In-window mode & volume booster",
+  "short_name": "FullscreenPlus",
+  "description": "Control your browser's fullscreen behavior and boost compatible video and audio players",
+  "version": "3.2.0",
+  "manifest_version": 3,
+  "icons": {
+    "16": "imgs/icon.png",
+    "48": "imgs/icon.png",
+    "128": "imgs/icon.png"
+  },
+  "action": {
+    "default_popup": "html/popup.html"
+  },
+  "background": {
+    "scripts": ["js/firefox/background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/fullscreen.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js", "js/firefox/volume.js"],
+      "css": ["css/content.css"],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ],
+  "permissions": ["activeTab", "storage"],
+  "web_accessible_resources": [
+    {
+      "resources": ["html/choice.html", "css/choice.css", "js/choice.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "fullscreenplus@komori.dev",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}

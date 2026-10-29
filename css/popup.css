@@ -245,7 +245,9 @@ body {
 
 #volumeBoost {
     flex: 1;
-    accent-color: var(--accent);
+    background: var(--text);
+    height: 6px;
+    border-radius: 3px;
     cursor: pointer;
 }
 
@@ -254,4 +256,22 @@ body {
     font-weight: 600;
     color: var(--accent);
     font-size: 14px;
+}
+
+
+/* FIREFOX PROGRESS FILL (This fixes the active blue color update) */
+#volumeBoost::-moz-range-progress {
+    background: var(--accent); /* Changes to your accent color as you increase */
+    height: 6px;
+    border-radius: 3px;
+}
+
+/* FIREFOX MOVING DOT */
+#volumeBoost::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
 }
