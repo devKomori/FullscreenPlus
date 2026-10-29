@@ -5,9 +5,9 @@
   "version": "3.2.0",
   "manifest_version": 3,
   "icons": {
-    "16": "imgs/icon.png",
-    "48": "imgs/icon.png",
-    "128": "imgs/icon.png"
+    "16": "imgs/icon128.png",
+    "48": "imgs/icon128.png",
+    "128": "imgs/icon128.png"
   },
   "action": {
     "default_popup": "html/popup.html"
