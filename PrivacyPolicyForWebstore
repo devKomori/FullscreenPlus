@@ -1,0 +1,7 @@
+I do not collect any data. 
+
+The extension stores user preferences using Chrome's storage API chrome.storage.sync. This includes website-specific fullscreen settings, allowing the extension to remember your fullscreen mode preference for each website.
+
+These settings are used solely to provide the extension's functionality and are not transmitted to myself or any third-party.
+
+The source code is open! You're welcome to review the source code to see exactly how the extension works.
