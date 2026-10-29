@@ -5,8 +5,8 @@
   "version": "3.2.0",
   "manifest_version": 3,
   "icons": {
-    "16": "imgs/icon128.png",
-    "48": "imgs/icon128.png",
+    "16": "imgs/icon16.png",
+    "48": "imgs/icon48.png",
     "128": "imgs/icon128.png"
   },
   "action": {

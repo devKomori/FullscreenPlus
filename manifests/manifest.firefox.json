@@ -1,12 +1,12 @@
 {
-  "name": "FullscreenPlus - In-window mode & volume booster",
+  "name": "FullscreenPlus - In-window & volume boost",
   "short_name": "FullscreenPlus",
   "description": "Customize fullscreen to fill your browser window instead of your screen. Works on YouTube, Reddit, and more, with volume boosting.",
   "version": "3.2.0",
   "manifest_version": 3,
   "icons": {
-    "16": "imgs/icon128.png",
-    "48": "imgs/icon128.png",
+    "16": "imgs/icon16.png",
+    "48": "imgs/icon48.png",
     "128": "imgs/icon128.png"
   },
   "action": {
@@ -43,7 +43,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "fullscreenplus@komori.dev",
-      "strict_min_version": "128.0",
+      "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": ["none"]
       }
