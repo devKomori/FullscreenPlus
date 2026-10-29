@@ -1,7 +1,7 @@
 {
   "name": "FullscreenPlus - In-window mode & volume booster",
   "short_name": "FullscreenPlus",
-  "description": "Control your browser's fullscreen behavior and boost the volume of any tab",
+  "description": "Customize fullscreen to fill your browser window instead of your screen. Works on YouTube, Reddit, and more, with volume boosting.",
   "version": "3.2.0",
   "manifest_version": 3,
   "icons": {
