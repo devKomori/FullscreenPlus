@@ -1,0 +1,45 @@
+{
+  "name": "FullscreenPlus - Windowed Mode & Volume Booster",
+  "short_name": "FullscreenPlus",
+  "description": "Control your browser's fullscreen behavior and boost the volume of any tab",
+  "version": "3.2.0",
+  "manifest_version": 3,
+  "icons": {
+    "16": "imgs/icon.png",
+    "48": "imgs/icon.png",
+    "128": "imgs/icon.png"
+  },
+  "action": {
+    "default_popup": "html/popup.html"
+  },
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "content_scripts": [
+    {
+        "matches": ["<all_urls>"],
+        "js": ["js/fullscreen.js"],
+        "run_at": "document_start",
+        "world": "MAIN",
+        "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js"],
+      "css": ["css/content.css"],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ],
+  "permissions": ["activeTab", "storage", "tabCapture", "offscreen"],
+  "web_accessible_resources": [
+    {
+      "resources": ["html/choice.html", "css/choice.css", "js/choice.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+
+
+}
