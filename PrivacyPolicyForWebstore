@@ -4,4 +4,4 @@ The extension stores user preferences using Chrome's storage API chrome.storage.
 
 These settings are used solely to provide the extension's functionality and are not transmitted to myself or any third-party.
 
-The source code is open! You're welcome to review the source code to see exactly how the extension works.
+The source code is open and you are welcome to review it and see how the extension works.
